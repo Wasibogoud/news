@@ -1,11 +1,16 @@
 <?php
 
-use App\Http\Controllers\NewsController;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Models\Noticia;
 
-Route::get('/user', function (Request $request) {
-    return $request->user();
-})->middleware('auth:sanctum');
+Route::get('/noticias', function () {
+    $noticias = Noticia::latest()->get();
 
-Route::apiResource('news', NewsController::class);
+    if ($noticias->isEmpty()) {
+        return response()->json([
+            'message' => 'No hay noticias almacenadas aún.'
+        ], 200);
+    }
+
+    return response()->json($noticias);
+});

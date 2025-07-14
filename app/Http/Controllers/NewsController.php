@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\news;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
+use app\Moldels\Noticia;
 
 class NewsController extends Controller
 {
@@ -12,8 +14,27 @@ class NewsController extends Controller
      */
     public function index()
     {
-        return response()->json(news::all());
+        $apiKey = env('NYT_API_KEY');
+        $url = "https://api.nytimes.com/svc/topstories/v2/home.json?api-key={$apiKey}";
+        
+        $response = Http::get($url);
+
+        $articles = [];
+
+        if ($response->successful()) {
+            $data = $response->json();
+            $allArticles = $data['results'] ?? [];
+
+            // Selecciona aleatoriamente 6 noticias
+            shuffle($allArticles);
+            $articles = array_slice($allArticles, 0, request('count', 6));
+        }   else {
+            $articles = news::latest()->take(6)->get();
+        }
+
+        return view('welcome', compact('articles'));
     }
+
 
     /**
      * Store a newly created resource in storage.
